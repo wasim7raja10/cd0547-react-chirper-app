@@ -13,18 +13,18 @@ function addTweet(tweet) {
 }
 
 export function handleAddTweet(text, replyingTo) {
-  return (dispatch, getState) => {
+  return async (dispatch, getState) => {
     const { authedUser } = getState();
 
     dispatch(showLoading());
 
-    return saveTweet({
+    const tweet = await saveTweet({
       text,
       author: authedUser,
       replyingTo,
-    })
-      .then((tweet) => dispatch(addTweet(tweet)))
-      .then(() => dispatch(hideLoading()));
+    });
+    dispatch(addTweet(tweet));
+    return dispatch(hideLoading());
   };
 }
 
@@ -45,13 +45,15 @@ function toggleTweet({ id, authedUser, hasLiked }) {
 }
 
 export function handleToggleTweet(info) {
-  return (dispatch) => {
+  return async (dispatch) => {
     dispatch(toggleTweet(info));
 
-    return saveLikeToggle(info).catch((e) => {
+    try {
+      return await saveLikeToggle(info);
+    } catch (e) {
       console.warn("Error in handleToggleTweet: ", e);
       dispatch(toggleTweet(info));
       alert("The was an error liking the tweet. Try again.");
-    });
+    }
   };
 }
